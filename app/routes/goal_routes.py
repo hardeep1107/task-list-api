@@ -2,7 +2,7 @@ from flask import Blueprint, make_response, request, Response
 from ..models.goal import Goal
 from ..models.task import Task
 from ..db import db
-from .route_utilities import create_model, validate_model
+from .route_utilities import create_model, validate_model, get_models_with_filters
 
 
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
@@ -14,12 +14,7 @@ def create_goal():
 
 @goals_bp.route("", methods=["GET"])
 def get_all_goals():
-    query = db.select(Goal).order_by(Goal.id)
-    goals = db.session.scalars(query)
-
-    goals_response = [goal.to_dict() for goal in goals]
-
-    return make_response(goals_response, 200)
+    return get_models_with_filters(Goal, request.args), 200
 
 @goals_bp.route("/<goal_id>", methods=["GET"])
 def get_one_goal(goal_id):

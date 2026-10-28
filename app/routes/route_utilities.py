@@ -21,14 +21,40 @@ def validate_model(model, model_id):
     return model_instance
 
 
-def create_model(model, request_body):
-    if (not request_body or "title" not in request_body
-        or (hasattr(model, "description") and "description" not in request_body)):
-        abort(make_response({"details": "Invalid data"}, 400))
+def create_model(cls, model_data):
+    try:
+        new_model = cls.from_dict(model_data)
 
-    new_model = model.from_dict(request_body)
+    except KeyError:
+        abort(make_response({"details": "Invalid data"}, 400))
 
     db.session.add(new_model)
     db.session.commit()
 
     return new_model.to_dict(), 201
+
+
+def get_models_with_filters(cls, filters=None):
+    query = db.select(cls)
+
+    if filters:
+        sort_order = filters.get("sort")
+
+        for attribute, value in filters.items():
+            if attribute != "sort" and hasattr(cls, attribute):
+                query = query.where(
+                    getattr(cls, attribute).ilike(f"%{value}%")
+                )
+
+        if sort_order == "asc" and hasattr(cls, "title"):
+            query = query.order_by(cls.title.asc())
+        elif sort_order == "desc" and hasattr(cls, "title"):
+            query = query.order_by(cls.title.desc())
+        else:
+            query = query.order_by(cls.id)
+    else:
+        query = query.order_by(cls.id)
+
+    models = db.session.scalars(query)
+    models_response = [model.to_dict() for model in models]
+    return models_response

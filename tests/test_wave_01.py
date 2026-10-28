@@ -136,7 +136,7 @@ def test_get_task_not_found(client):
 
     # Assert
     assert response.status_code == 404
-    assert response_body == {"details": "Not found"}
+    assert response_body == {"message": "task 1 not found"}
 
 def test_create_task(client):
     # Act
@@ -191,7 +191,7 @@ def test_update_task_not_found(client):
 
     # Assert
     assert response.status_code == 404
-    assert response_body == {"details": "Not found"}
+    assert response_body == {"message": "task 1 not found"}
 
 def test_delete_task(client, one_task):
     # Act
@@ -210,7 +210,7 @@ def test_delete_task_not_found(client):
 
     # Assert
     assert response.status_code == 404
-    assert response_body == {"details": "Not found"}
+    assert response_body == {"message": "task 1 not found"}
     assert db.session.scalars(db.select(Task)).all() == []
 
 def test_create_task_must_contain_title(client):
